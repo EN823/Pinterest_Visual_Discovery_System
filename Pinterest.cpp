@@ -253,6 +253,19 @@ vector<Pin> pins =
 
 
 // ============================================================
+// SAVED PINS DATA
+// ============================================================
+
+vector<int> savedPins;
+
+// ============================================================
+// COMMENTS DATA
+// Each pin can have multiple comments
+// ============================================================
+
+vector<vector<string>> pinComments(pins.size());
+
+// ============================================================
 // RELATED KEYWORDS
 // ============================================================
 
@@ -342,6 +355,125 @@ void displayPins(vector<int> results)
 
 
 // ============================================================
+// FORWARD DECLARATIONS
+// ============================================================
+
+void showPinDetails(int pinIndex);
+void showRecommendations(int pinIndex);
+
+
+// ============================================================
+// SAVE PIN
+// ============================================================
+
+void savePin(int pinIndex)
+{
+    for (int i = 0; i < savedPins.size(); i++)
+    {
+        if (savedPins[i] == pinIndex)
+        {
+            cout << "\nThis pin is already saved!\n";
+            return;
+        }
+    }
+
+    savedPins.push_back(pinIndex);
+
+    cout << "\nPin saved successfully!\n";
+    cout << "\"" << pins[pinIndex].title
+         << "\" has been added to your Saved Pins.\n";
+}
+
+
+// ============================================================
+// RECOMMENDATIONS
+// ============================================================
+
+void showRecommendations(int pinIndex)
+{
+    vector<int> recommendations;
+
+    // Recommend other pins from the same category.
+    for (int i = 0; i < pins.size(); i++)
+    {
+        if (i != pinIndex &&
+            pins[i].category == pins[pinIndex].category)
+        {
+            recommendations.push_back(i);
+        }
+    }
+
+    cout << "\n\n";
+    cout << "============================================================\n";
+    cout << "                    RECOMMENDATIONS\n";
+    cout << "============================================================\n";
+
+    if (recommendations.empty())
+    {
+        cout << "\nNo recommendations available.\n";
+        return;
+    }
+
+    for (int i = 0; i < recommendations.size(); i++)
+    {
+        int index = recommendations[i];
+
+        cout << "[" << i + 1 << "] "
+             << pins[index].title
+             << " — by "
+             << pins[index].author
+             << "\n";
+
+        cout << "    Category: "
+             << pins[index].category
+             << "\n\n";
+    }
+
+    line();
+
+    cout << "\nOptions:\n";
+    cout << "1. Explore a Recommended Pin\n";
+    cout << "2. Discover Again\n";
+    cout << "3. Back to Pin\n";
+
+    cout << "\nEnter your choice: ";
+
+    int choice;
+    cin >> choice;
+
+    if (choice == 1)
+    {
+        int recommendationChoice;
+
+        cout << "\nEnter the pin number to explore: ";
+        cin >> recommendationChoice;
+
+        if (recommendationChoice >= 1 &&
+            recommendationChoice <= recommendations.size())
+        {
+            showPinDetails(recommendations[recommendationChoice - 1]);
+        }
+        else
+        {
+            cout << "\nInvalid pin number.\n";
+        }
+    }
+    else if (choice == 2)
+    {
+        cout << "\nReturning to Discover...\n";
+    }
+    else if (choice == 3)
+    {
+        cout << "\nReturning to Pin Details...\n";
+    }
+    else
+    {
+        cout << "\nInvalid choice.\n";
+    }
+}
+
+
+// ============================================================
 // SHOW PIN DETAILS
 // ============================================================
 
@@ -373,6 +505,28 @@ void showPinDetails(int pinIndex)
 
         line();
 
+        // ----------------------------------------------------
+        // COMMENTS
+        // ----------------------------------------------------
+
+        cout << "\nComments:\n";
+
+        if (pinComments[pinIndex].empty())
+        {
+            cout << "No comments yet.\n";
+        }
+        else
+        {
+            for (int i = 0; i < pinComments[pinIndex].size(); i++)
+            {
+                cout << "[" << i + 1 << "] "
+                    << pinComments[pinIndex][i]
+                    << "\n";
+            }
+        }
+
+        line();
+
         cout << "\nWhat would you like to do?\n\n";
 
         cout << "1. Save Pin\n";
@@ -387,33 +541,63 @@ void showPinDetails(int pinIndex)
         // ----------------------------------------------------
         // SAVE PIN
         // ----------------------------------------------------
+
         if (choice == 1)
         {
-            cout << "\n";
-            cout << "Save Pin feature will be connected here.\n";
-            cout << "This section will be implemented by the team member\n";
-            cout << "responsible for the Save Pin function.\n";
+            savePin(pinIndex);
+
+            cout << "\nWould you like to see recommendations based on this pin?\n";
+            cout << "1. Yes\n";
+            cout << "2. No\n";
+
+            cout << "\nEnter your choice: ";
+
+            int recommendationChoice;
+            cin >> recommendationChoice;
+
+            if (recommendationChoice == 1)
+            {
+                showRecommendations(pinIndex);
+            }
+            else if (recommendationChoice == 2)
+            {
+                viewing = false;
+            }
+            else
+            {
+                cout << "\nInvalid choice.\n";
+            }
         }
 
         // ----------------------------------------------------
         // COMMENT
         // ----------------------------------------------------
+
         else if (choice == 2)
         {
-            cin.ignore();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
             string comment;
 
             cout << "\nEnter your comment: ";
             getline(cin, comment);
 
-            cout << "\nYour comment has been recorded:\n";
-            cout << "\"" << comment << "\"\n";
+            if (!comment.empty())
+            {
+                pinComments[pinIndex].push_back(comment);
+
+                cout << "\nComment added successfully!\n";
+            }
+            else
+            {
+                cout << "\nComment cannot be empty.\n";
+            }
         }
 
         // ----------------------------------------------------
         // BACK
         // ----------------------------------------------------
+
         else if (choice == 3)
         {
             viewing = false;
@@ -682,23 +866,47 @@ void viewSavedPins()
     cout << "                     SAVED PINS\n";
     cout << "============================================================\n";
 
-    cout << "\nYour saved pins will appear here.\n";
+    if (savedPins.empty())
+    {
+        cout << "\nYou have no saved pins yet.\n";
+        line();
 
-    cout << "\nThe Save Pin function will be connected by the\n";
-    cout << "team member responsible for the Save Pin section.\n";
+        cout << "\n1. Back to Main Page\n";
+        cout << "\nEnter your choice: ";
 
-    line();
+        int choice;
+        cin >> choice;
 
-    cout << "\n1. Back to Main Page\n";
+        return;
+    }
+
+    displayPins(savedPins);
+
+    cout << "\nOptions:\n";
+    cout << "1. Explore a Saved Pin\n";
+    cout << "2. Back to Main Page\n";
 
     cout << "\nEnter your choice: ";
 
     int choice;
     cin >> choice;
 
-    if (choice != 1)
+    if (choice == 1)
     {
-        cout << "\nReturning to Main Page...\n";
+        int pinChoice;
+
+        cout << "\nEnter the saved pin number to explore: ";
+        cin >> pinChoice;
+
+        if (pinChoice >= 1 &&
+            pinChoice <= savedPins.size())
+        {
+            showPinDetails(savedPins[pinChoice - 1]);
+        }
+        else
+        {
+            cout << "\nInvalid pin number.\n";
+        }
     }
 }
 
